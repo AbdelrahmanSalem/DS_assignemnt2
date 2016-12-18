@@ -15,6 +15,11 @@ public class Predicate {
 		/*
 		 * Add your code here to implement predicate2 x1 - x2= 15
 		 */
+		if ( process_i_Message.getLocalVariable() - process_j_Message.getLocalVariable() == 15)
+				return true;
+			else
+				return false;
+		
 	}
 
 	static public boolean predicate2(Message process_i_Message, Message process_j_Message) {
@@ -23,6 +28,10 @@ public class Predicate {
 		 * Add your code here to implement predicate2 x1 + x2= 30
 		 */
 
+		if ( process_i_Message.getLocalVariable() + process_j_Message.getLocalVariable() == 30)
+			return true;
+		else
+			return false;
 	}
 
 	static public boolean predicate3(Message process_i_Message, Message process_j_Message) {
@@ -30,5 +39,9 @@ public class Predicate {
 		/*
 		 * Add your code here to implement predicate1 x1- x3= 8
 		 */
+		if ( process_i_Message.getLocalVariable() - process_j_Message.getLocalVariable() == 8)
+			return true;
+		else
+			return false;
 	}
 }
