@@ -25,7 +25,9 @@ public class VectorClock {
 		/*
 		 * Complete a code to increment the local clock component  
 		 */
+		synchronized(this.vectorClock){
 			vectorClock[processId]++;	
+		}
 	}
 
 	public int[] get() {
@@ -39,10 +41,12 @@ public class VectorClock {
 		/*
 		 * Implement Supermum operation
 		 */
-		increment();
-		for(int i =0;i< this.vectorClock.length;i++){
-			if(other.vectorClock[i] > this.vectorClock[i])
-				this.vectorClock[i]= other.vectorClock[i];
+		synchronized(this.vectorClock){
+			increment();
+			for(int i =0;i< this.vectorClock.length;i++){
+				if(other.vectorClock[i] > this.vectorClock[i])
+					this.vectorClock[i]= other.vectorClock[i];
+			}
 		}
 	}
 
