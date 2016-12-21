@@ -14,6 +14,55 @@ public class Process3 extends AbstractProcess {
 	public void run() {
 		
 		//TODO Implement processes3 (Listing 4) code here!
+		// send the initial state to Monitor
+				Message message = new Message(new VectorClock(vectorClock), this.localVariable);
+				monitor.receiveMessage(this.Id, message);
+
+				// line 1
+				this.localVariable = 4;
+				this.vectorClock.increment();
+				// notify the monitor
+				message = new Message(new VectorClock(vectorClock), this.localVariable);
+				monitor.receiveMessage(this.Id, message);
+
+				// line 2
+				this.localVariable *=3;
+				this.vectorClock.increment();
+				// notify the monitor
+				message = new Message(new VectorClock(vectorClock), this.localVariable);
+				monitor.receiveMessage(this.Id, message);
+
+				// line 3
+				Message receivedMessage = receive(0); // receive from process 1
+				this.vectorClock.update(receivedMessage.getVectorClock());
+				this.localVariable = receivedMessage.getLocalVariable() - this.localVariable;
+				this.vectorClock.increment();
+
+				// notify the monitor
+				message = new Message(new VectorClock(vectorClock), this.localVariable);
+				monitor.receiveMessage(this.Id, message);
+				
+				// line 4
+				this.localVariable -= 2;
+				this.vectorClock.increment();
+				// notify the monitor
+				message = new Message(new VectorClock(vectorClock), this.localVariable);
+				monitor.receiveMessage(this.Id, message);
+
+				// line 5
+				this.localVariable += 2;
+				this.vectorClock.increment();
+				// notify the monitor
+				message = new Message(new VectorClock(vectorClock), this.localVariable);
+				monitor.receiveMessage(this.Id, message);
+
+				// line 6
+				send(0, message); // send to process 3
+				
+
+				// send terminate signal
+				monitor.processTerminated(this.Id);
+				System.out.printf("process:%d , the local variable= %d\n", this.Id, this.localVariable);
 		
 	}
 

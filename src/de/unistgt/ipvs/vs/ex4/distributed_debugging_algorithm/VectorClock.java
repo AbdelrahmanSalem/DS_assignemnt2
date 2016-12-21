@@ -42,7 +42,7 @@ public class VectorClock {
 		 * Implement Supermum operation
 		 */
 		synchronized(this.vectorClock){
-			increment();
+			
 			for(int i =0;i< this.vectorClock.length;i++){
 				if(other.vectorClock[i] > this.vectorClock[i])
 					this.vectorClock[i]= other.vectorClock[i];
