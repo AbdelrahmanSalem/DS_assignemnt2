@@ -59,7 +59,7 @@ public class Monitor implements Runnable {
 	//Count of still running processes. The monitor starts to check predicates (build lattice) whenever runningProcesses equals zero.
 	private AtomicInteger runningProcesses;
 	// Q1, Q2, ..., Qn
-	private List<List<Message>>;
+	//	private List<List<Message>>;
 	/* 
 	 * Q1, Q2, ..., Qn
 	 * It represents the processes' queue. See distributed debugging algorithm from global state lecture!
@@ -68,11 +68,11 @@ public class Monitor implements Runnable {
 
 	//list of states
 	private LinkedList<State> states;
-
+	private LinkedList<State> currentStates;
 	//The predicates checking results
 	private boolean[] possiblyTruePredicatesIndex;
 	private boolean[] definitelyTruePredicatesIndex;
-
+	private int[] currentProcesses= new int[2];
 	public Monitor(int numberOfProcesses) {
 		this.numberOfProcesses = numberOfProcesses;
 
@@ -147,7 +147,7 @@ public class Monitor implements Runnable {
 			states.clear();
 
 		}
-
+		
 		if (numberOfProcesses > 2) {
 			int predicateNo = 3;
 			states.add(initialState); // add the initial state to states list
@@ -168,6 +168,35 @@ public class Monitor implements Runnable {
 		 * NOTE1: this function should call findReachableStates and checkPredicate functions. 
 		 * NOTE2: predicateNo, process_i_id and process_j_id are described in checkPredicate function.
 		 */
+		currentProcesses[0]=process_i_id;
+		currentProcesses[0]=process_j_id;
+		List<State>currentStates = new ArrayList<>();
+		State state = states.get(0);
+		Message a = processesMessages.get(process_j_id).get(state.getProcessMessageCurrentIndex(process_j_id));
+		Message b = processesMessages.get(process_i_id).get(state.getProcessMessageCurrentIndex(process_i_id));
+		if(checkPredicate(predicateNo, a, b)){
+			definitelyTruePredicatesIndex[predicateNo]=true;
+			possiblyTruePredicatesIndex[predicateNo]=true;
+			return ;			
+		}
+		currentStates.add(states.get(0));
+		List<State> newStates;
+		
+		for(int i =0;i< currentStates.size();i++){
+				newStates = findReachableStates(currentStates.get(i));							
+				states.clear();
+				states.addAll(newStates);
+				if(checkPredicate(predicateNo, process_i_id, process_j_id))
+					return;
+				if(states.size()==0){
+					definitelyTruePredicatesIndex[predicateNo]=true;
+					break;
+				}
+		}
+		
+		
+	
+		
 	}
 
 	/**
@@ -182,7 +211,17 @@ public class Monitor implements Runnable {
 		 * Given a state, implement a code that find all reachable states. The
 		 * function should return a list of all reachable states
 		 * 
-		 */
+		 */		
+		LinkedList<State> states = new LinkedList<>();
+		int[] indeces=state.getProcessesMessagesCurrentIndex();
+		for(int i=0 ;i< currentProcesses.length;i++){				
+			int[] newIndeces =indeces.clone();
+			newIndeces[currentProcesses[i]]++;
+			State newState=new State(newIndeces);
+			if(checkConsistency(state, newState,currentProcesses[i]))
+				states.add(newState);
+		}
+		return states;
 	}
 
 	/**
@@ -208,7 +247,45 @@ public class Monitor implements Runnable {
 		 * case 1: ... 
 		 * }
 		 */
-
+		 for(State s: states){
+			 Message a = processesMessages.get(process_i_Id).get(s.getProcessMessageCurrentIndex(process_i_Id));
+			 Message b = processesMessages.get(process_j_id).get(s.getProcessMessageCurrentIndex(process_j_id));
+			 if(checkPredicate(predicateNo, a, b)){
+				 states.remove(s);
+				 possiblyTruePredicatesIndex[predicateNo]= true;
+			 }else
+				 currentStates.add(s);
+		 }
+		 if(states.size()== 0)
+			 return true;
+		 else
+			 return false;
+		
+	}
+	private boolean checkPredicate(int predicateNo,Message a,Message b){
+		 switch (predicateNo) 
+		  {
+		   case 0: 
+			   return Predicate.predicate0(a, b);
+		  
+		  case 1: 
+			  return Predicate.predicate1(a, b);
+		  case 2:
+			  return Predicate.predicate2(a, b);
+		  case 3:
+			  return Predicate.predicate3(a, b);
+		  default:
+			  return false;
+		  }
+	}
+	private boolean checkConsistency(State oldState,State newState,int process){
+		boolean consistent=true;
+		VectorClock clockj = processesMessages.get(process).get(newState.getProcessMessageCurrentIndex(process)).getVectorClock();
+		for(int i =0;i<currentProcesses.length;i++){
+			VectorClock clocki= processesMessages.get(currentProcesses[i]).get(oldState.getProcessMessageCurrentIndex(currentProcesses[i])).getVectorClock();			
+			consistent &= clockj.checkConsistency(currentProcesses[i], clocki); 
+		}
+		return consistent;
 	}
 
 }
